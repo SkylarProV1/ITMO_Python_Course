@@ -1,10 +1,8 @@
 
 You can start the game like this:
 
-```
 python life-gui.py
 
-------------------
 You can run the tests like this:
 
 ```
