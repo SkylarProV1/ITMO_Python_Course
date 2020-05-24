@@ -150,8 +150,8 @@ class ProcessPool:
 		for p in processes:
 			p.terminate()
 
-		#self.regenerator_worker(func=func,queue_in=queue_in,
-					#queue_out=queue_out,chunksizes=chunksizes)
+		self.regenerator_worker(func=func,queue_in=queue_in,
+					queue_out=queue_out,chunksizes=chunksizes)
 
 
 	def test_monitor(self,process, time_check: int = 0.1,):
