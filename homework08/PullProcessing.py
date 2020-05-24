@@ -150,7 +150,7 @@ class ProcessPool:
 		for p in processes:
 			p.terminate()
 
-		self.regenerator_worker(func=func,queue_in=queue_in,
+		self.regenerator_worker(data=data,func=func,queue_in=queue_in,
 					queue_out=queue_out,chunksizes=chunksizes)
 
 
