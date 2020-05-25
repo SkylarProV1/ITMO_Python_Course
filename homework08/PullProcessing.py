@@ -54,7 +54,10 @@ class ProcessPool:
 		return self.results
 
 	def explorer_worker(self,data,func,queue_in,queue_out):
-
+		"""
+		The first runner to study
+		memory consumption
+		"""
 		queue_in.put(data[:int(self.chunksize)])
 		process = Process(target=func,args = (queue_in,queue_out,))
 		controler = Thread(target = self.test_monitor, args = (process,), daemon = True)
@@ -67,7 +70,10 @@ class ProcessPool:
 		return vector_mem
 
 	def regenerator_worker(self,data,func,queue_in,queue_out,chunksizes) -> None:
-
+		"""
+		Workers who recover discarded
+		pieces of calculations
+		"""
 		kills=list()
 		gap_restart=list()
 		if self.check_monitor >0:
@@ -104,7 +110,10 @@ class ProcessPool:
 					p.terminate()
 
 	def worker_processes(self,data,func,len_data,):
-
+		"""
+		Main function
+		to execute
+		"""
 		queue_in = Queue()
 		queue_out = Queue()
 		self.control_data = Queue()
@@ -155,6 +164,10 @@ class ProcessPool:
 
 
 	def test_monitor(self,process, time_check: int = 0.1,):
+		"""
+		Monitor the first runner 
+		to estimate consumed memory
+		"""
 		timing = time.time()
 		mem_data=list()
 		while process.is_alive():
@@ -166,6 +179,10 @@ class ProcessPool:
 		self.control_data.put(mem_data)
 
 	def main_monitor(self,processes, time_check: int=0.5):
+		"""
+		Monitor for memory check 
+		and overflow kill
+		"""
 		timing = time.time()
 		while True:
 			if time.time() - timing > time_check:
