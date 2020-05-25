@@ -54,7 +54,10 @@ class ProcessPool:
 		return self.results
 
 	def explorer_worker(self,data,func,queue_in,queue_out):
-
+		"""
+		The first runner to study
+		memory consumption
+		"""
 		queue_in.put(data[:int(self.chunksize)])
 		process = Process(target=func,args = (queue_in,queue_out,))
 		controler = Thread(target = self.test_monitor, args = (process,), daemon = True)
@@ -67,7 +70,10 @@ class ProcessPool:
 		return vector_mem
 
 	def regenerator_worker(self,data,func,queue_in,queue_out,chunksizes) -> None:
-
+		"""
+		Workers who recover discarded
+		pieces of calculations
+		"""
 		kills=list()
 		gap_restart=list()
 		if self.check_monitor >0:
@@ -84,9 +90,8 @@ class ProcessPool:
 
 		processes2 = list()
 		if len(kills)>0:
-			#print(f"Pull processes {processes}")
 			#print(f"I reload1")
-			#print(f"Count {gap_restart} ")
+			print(f"Count {gap_restart} ")
 			for gap in gap_restart:
 				#print(f"I reload2 {gap}")
 				queue_in.put(data[int(gap[0]):int(gap[1])])
@@ -104,7 +109,10 @@ class ProcessPool:
 					p.terminate()
 
 	def worker_processes(self,data,func,len_data,):
-
+		"""
+		Main function
+		to execute
+		"""
 		queue_in = Queue()
 		queue_out = Queue()
 		self.control_data = Queue()
@@ -118,8 +126,6 @@ class ProcessPool:
 			limit=min(int(self.mem_usage/self.max_mem),self.max_workers)
 		if limit < self.min_workers:
 			raise ValueError("You have set the min worker threshold too large for allocated memory")
-
-		print(len(data))
 
 		#print(f"Max count process {limit}")
 		#print(f"Max mem in first runner {self.max_mem}")
@@ -141,7 +147,6 @@ class ProcessPool:
 			controler.start()
 
 		for process in processes:
-			print(process)
 			if process.is_alive():
 				py = psutil.Process(process.pid)
 				if py.status()!='zombie':
@@ -150,11 +155,15 @@ class ProcessPool:
 		for p in processes:
 			p.terminate()
 
-		#self.regenerator_worker(func=func,queue_in=queue_in,
-					#queue_out=queue_out,chunksizes=chunksizes)
+		self.regenerator_worker(data=data,func=func,queue_in=queue_in,
+					queue_out=queue_out,chunksizes=chunksizes)
 
 
 	def test_monitor(self,process, time_check: int = 0.1,):
+		"""
+		Monitor the first runner 
+		to estimate consumed memory
+		"""
 		timing = time.time()
 		mem_data=list()
 		while process.is_alive():
@@ -166,6 +175,10 @@ class ProcessPool:
 		self.control_data.put(mem_data)
 
 	def main_monitor(self,processes, time_check: int=0.5):
+		"""
+		Monitor for memory check 
+		and overflow kill
+		"""
 		timing = time.time()
 		while True:
 			if time.time() - timing > time_check:
@@ -225,10 +238,10 @@ def heavy_computation(queue_in,queue_out):
 def generation_big_data():
 
 	fullsteck = list()
-	for l in range(10000):
+	for l in range(100000):
 		if l < 3000:
-			M=20
-			N=20
+			M=50
+			N=50
 		else:
 			N=100
 			M=100
@@ -239,7 +252,7 @@ def generation_big_data():
 
 if __name__=="__main__":
 	big_data = generation_big_data()
-	pool = ProcessPool(min_workers=1, max_workers=10, mem_usage='3000Mb')
+	pool = ProcessPool(min_workers=1, max_workers=8, mem_usage='1Gb')
 	T1 = time.time()
 	results = pool.map(heavy_computation, big_data)
 	T2 = time.time()
